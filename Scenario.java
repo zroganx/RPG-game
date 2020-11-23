@@ -156,6 +156,7 @@ public class Scenario
   }
   public void playerTurn(Weapon first, Character f, Enemies enemy)
   {
+    int doubleStrike = (int)(Math.random() * 100) + 1;
     blocking = false;
     Scanner battle = new Scanner(System.in);
     f.falseGaveAnswer();
@@ -180,13 +181,26 @@ public class Scenario
                 if(first.getStrength() - enemy.getEnemyAtt() <= 0)
                 System.out.println("The " + enemy.getEnemyName() + " parries your strike!");
                 else
+                {
                 enemy.setEnemyHealth(enemy.getEnemyHealth() - (first.getStrength() - enemy.getEnemyAtt()));
                 System.out.println("\nYou strike the " + enemy.getEnemyName() + " with your " + first.getType() + " but the " + enemy.getEnemyName() + " was prepared." + " You deal only " + (first.getStrength() - enemy.getEnemyAtt()) + " damage!");
+                if(doubleStrike > 10 + (first.getSpeed() * 1.5)) //doulbeStrike blocked
+                {
+                    System.out.println("You outmanuever the " + enemy.getEnemyName() + " and deal an additional " + (first.getStrength() - enemy.getEnemyAtt()) + " damage!");
+                    enemy.setEnemyHealth(enemy.getEnemyHealth() - (first.getStrength() - enemy.getEnemyAtt()));
+                }
+                }
+              
               }
               else
               {
               enemy.setEnemyHealth(enemy.getEnemyHealth()-first.getStrength()); //basic attack
               System.out.println("\nYou strike the " + enemy.getEnemyName() + " with your " + first.getType() + ".\nYou deal " + first.getStrength() + " damage!"); 
+              if(doubleStrike > 10 + (first.getSpeed() * 1.5)) //doubleStrike
+                {
+                    System.out.println("You outmanuever the " + enemy.getEnemyName() + " and deal an additional " + first.getStrength() + " damage!");
+                    enemy.setEnemyHealth(enemy.getEnemyHealth() - first.getStrength());
+                }
               }
             }
           break;
