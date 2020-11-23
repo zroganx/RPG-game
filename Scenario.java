@@ -3,10 +3,6 @@ public class Scenario
 {
   private boolean escape;
   private boolean blocking;
-  private boolean enemyEscape;
-  private boolean enemyBlocking;
-  private int enemyHealth;
-  private int enemyAtt;
   private String answer;
   private String area;
   public Scenario(String a, Weapon first, Character f)
@@ -60,7 +56,7 @@ public class Scenario
       f.addPlayerGold(goldGained);
       break;
       case(2): //trap
-      int trapDamage = (int)(Math.random() * (f.getMaxPlayerHealth() / 2 + 1) + (f.getMaxPlayerHealth() / 6));
+      int trapDamage = (int)(Math.random() * ((f.getMaxPlayerHealth() / 2) - (f.getMaxPlayerHealth() / 6) + 1) + (f.getMaxPlayerHealth() / 6));
       System.out.println("You trigger a trap!\nYou take " + trapDamage + " damage!");
       f.removePlayerHealth(trapDamage);  
       break;
@@ -95,22 +91,62 @@ public class Scenario
   }
   public void battle(Weapon first, Character f)
   {
+    Object[] enemyTypes = {new goblin(), new skeleton(), new slime(), new zombie(), new darkFairy(), new ogre(), new elemental(), new amalgalm() };
+    Enemies enemy = (Enemies)enemyTypes[0]; //(int)(Math.random() * 8)
     escape = false;
-    enemyEscape = false;
     int tCounter = 0;
-    System.out.println("\nYou encounter a goblin.");
-    enemyHealth = 20;
-    enemyAtt = 5;
-    for(;enemyHealth > 0 && f.getPlayerHealth() > 0 && escape == false && enemyEscape == false; tCounter++)
+    System.out.println("\nYou encounter a " + enemy.getEnemyName() + ".");
+    for(;enemy.getEnemyHealth() > 0 && f.getPlayerHealth() > 0 && escape == false && enemy.getEnemyEscape() == false; tCounter++)
     {
+        int dodge = (int)(Math.random() * 100) + 1; 
       System.out.println("\nPlayer Health: " + f.getPlayerHealth()); //tells health
       System.out.println("Weapon Durability: " + first.getDurability());
-      System.out.println("Goblin Health: " + enemyHealth);
-      playerTurn(first, f);
-      if(enemyHealth > 0)
-      enemyTurn(first, f);
+      System.out.println(enemy.getEnemyName().substring(0, 1).toUpperCase() + enemy.getEnemyName().substring(1) + " Health: " + enemy.getEnemyHealth());
+      playerTurn(first, f, enemy);
+      if(enemy.getEnemyHealth() > 0)
+      switch(enemy.enemyTurn(first, f, enemy))
+      {
+          case 1:
+           if(dodge > 10 + first.getSpeed())
+            {
+                if(blocking)
+                {
+                    if((enemy.getEnemyAtt() - first.getStrength()) / 2 <= 0)
+                    {
+                        System.out.println("You parry the "+ enemy.getEnemyName() + "'s strike!");
+                    }
+                    else
+                    {
+                        f.removePlayerHealth((enemy.getEnemyAtt() - first.getStrength() / 2));
+                        System.out.println("The " + enemy.getEnemyName() + " strikes you for " + (enemy.getEnemyAtt() - first.getStrength()) + " damage!");
+                    }
+                }
+                else
+                {
+                    f.removePlayerHealth(enemy.getEnemyAtt());
+                    System.out.println("The " + enemy.getEnemyName() + " strikes you for " + enemy.getEnemyAtt() + " damage!");
+                }
+             }
+            else
+            {
+                System.out.println("You evade the " + enemy.getEnemyName() + "'s strike!");
+            }
+          break;
+          case 2:
+            enemy.setEnemyBlocking(true);
+          break;
+          case 3:
+            if((int)(Math.random() * 100) + 1 < 30)
+            {
+                enemy.setEnemyEscape(true);
+                 System.out.println("The " + enemy.getEnemyName() + " got away...");
+             }
+             else
+                 System.out.println("The " + enemy.getEnemyName() + " tried to escape but couldn't get away!");
+            break;
+        }
     }
-    if(enemyHealth <= 0)
+    if(enemy.getEnemyHealth() <= 0)
     battleVictory(f);
     else if(f.getPlayerHealth() <= 0)
     playerDeath();
@@ -118,7 +154,7 @@ public class Scenario
     battleEscaped();
     searchDungeon(first, f);
   }
-  public void playerTurn(Weapon first, Character f)
+  public void playerTurn(Weapon first, Character f, Enemies enemy)
   {
     blocking = false;
     Scanner battle = new Scanner(System.in);
@@ -135,28 +171,29 @@ public class Scenario
           case "fight":
           f.trueGaveAnswer();
             if(first.getDurability() > 0)
-            {  first.removeDurability(1);
+            {  
+              first.removeDurability(1);
               if(first.getDurability() == 0)
               System.out.println("\nYour weapon shatters!");
-              if(enemyBlocking)
+              if(enemy.getEnemyBlocking())
               {
-                if(first.getStrength() - enemyAtt <= 0)
-                System.out.println("The goblin parries your strike!");
+                if(first.getStrength() - enemy.getEnemyAtt() <= 0)
+                System.out.println("The " + enemy.getEnemyName() + " parries your strike!");
                 else
-                enemyHealth -= first.getStrength() - enemyAtt;
-                System.out.println("\nYou strike the goblin with your " + first.getType() + " but the goblin was prepared." + " You deal only " + (first.getStrength() - enemyAtt) + " damage!"); 
+                enemy.setEnemyHealth(enemy.getEnemyHealth() - (first.getStrength() - enemy.getEnemyAtt()));
+                System.out.println("\nYou strike the " + enemy.getEnemyName() + " with your " + first.getType() + " but the " + enemy.getEnemyName() + " was prepared." + " You deal only " + (first.getStrength() - enemy.getEnemyAtt()) + " damage!");
               }
               else
               {
-              enemyHealth -= first.getStrength(); //basic attack
-              System.out.println("\nYou strike the goblin with your " + first.getType() + ".\nYou deal " + first.getStrength() + " damage!"); 
+              enemy.setEnemyHealth(enemy.getEnemyHealth()-first.getStrength()); //basic attack
+              System.out.println("\nYou strike the " + enemy.getEnemyName() + " with your " + first.getType() + ".\nYou deal " + first.getStrength() + " damage!"); 
               }
             }
           break;
           case "block":
           f.trueGaveAnswer();
           blocking = true;
-          System.out.println("You ready yourself for the goblin's strike.");
+          System.out.println("You ready yourself for the " + enemy.getEnemyName() + "'s strike.");
           break;
           case "flee": //escape 
           f.trueGaveAnswer();
@@ -176,57 +213,6 @@ public class Scenario
     }
       
   }  
-  public void enemyTurn(Weapon first, Character f)
-  {
-    enemyBlocking = false;
-    int eAnswer;
-    int dodge = (int)(Math.random() * 100) + first.getSpeed(); // player dodge chance
-    if(enemyHealth < enemyHealth/4)
-    eAnswer = (int)(Math.random() * 2) + 1;
-    else 
-    eAnswer = (int)(Math.random() * 3) + 1; // enemy decision
-    switch(eAnswer)
-    {
-      case 1: //enemy attack
-      if(dodge <= 100)
-      {
-        if(blocking)
-        {
-          if(enemyAtt - first.getStrength() <= 0)
-          {
-            System.out.println("You parry the goblin's strike!");
-          }
-          else
-          {
-          f.removePlayerHealth(enemyAtt - first.getStrength());
-          System.out.println("The goblin strikes you for " + (enemyAtt - first.getStrength()) + " damage!");
-          }
-        }
-        else
-        {
-          f.removePlayerHealth(enemyAtt);
-          System.out.println("The goblin strikes you for " + enemyAtt + " damage!");
-        }
-      }
-      if(dodge > 100)
-      {
-        System.out.println("You evade the goblin's strike!");
-      }
-      break;
-      case 2:    //enemy block
-      enemyBlocking = true;
-      break;
-      case 3:    //enemy flee
-      if((int)(Math.random() * 100) + (40 - enemyAtt) > 100)
-      {
-      enemyEscape = true;
-      System.out.println("The goblin got away...");
-      }
-      else
-      System.out.println("The goblin tried to escape but couldn't get away!");
-      break;
-    }
-  }
   public void battleVictory(Character f)
   {
     int battleGold = (int)(Math.random() * 31) + 10;

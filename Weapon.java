@@ -24,7 +24,7 @@ public class Weapon
       case "axe":
         strength = 7;
         durability = 10;
-        speed = 13;
+        speed = 15;
         break;
       case "sword":
         strength = 11;
