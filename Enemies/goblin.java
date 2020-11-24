@@ -2,6 +2,7 @@ public class goblin extends EnemyBasicAI implements Enemies
 {
     private boolean enemyEscape;
     private boolean enemyBlocking;
+    private boolean enemyAttacking;
     private String enemyName;
     private int enemyHealth;
     private int enemyAtt;
@@ -24,6 +25,10 @@ public class goblin extends EnemyBasicAI implements Enemies
     public int getEnemyTotalHealth()
     {
         return enemyTotalHealth;
+    }
+    public boolean getEnemyAttacking()
+    {
+      return enemyAttacking;
     }
     public String getEnemyName()
     {
@@ -57,6 +62,22 @@ public class goblin extends EnemyBasicAI implements Enemies
     {
         enemyEscape = s;
     }
-
+    public void setEnemyAttacking(boolean s)
+    {
+        enemyAttacking = s;
+    }
+    public void reset()
+    {
+        enemyEscape = false;
+        enemyBlocking = false;
+        enemyName = "goblin";
+        enemyHealth = 20;
+        enemyAtt = 5;
+        enemyTotalHealth = enemyHealth;
+    }
+    public int enemyGold()
+    {
+        return (int)(Math.random() * 31) + 10;
+    }
     
 }

@@ -1,6 +1,9 @@
 import java.util.*;
 public class Scenario
 {
+    private Object[] enemyTypes = {new goblin(), new skeleton(), new slime(), new zombie(), new darkFairy(), new ogre(), new elemental(), new amalgalm()};
+    private int encounter;
+    private int escapeChance;
   private boolean escape;
   private boolean blocking;
   private String answer;
@@ -42,6 +45,7 @@ public class Scenario
         System.out.println("Command not recognized.");
         break;
       }
+      dungeon.close();
      }
   }
   public void treasure(Weapon first, Character f)
@@ -65,7 +69,7 @@ public class Scenario
       System.out.println("You discover a treasure trove!\nYou'll have to be fast to avoid the traps!");
       if(first.getSpeed() >= speedCheck)
       {
-        int spGoldGained = (int)(Math.random() * 21) + 20;
+        int spGoldGained = (int)(Math.random() * 101) + 100;
         System.out.println("You easily weave through the traps to the treasure.\nYou gain " + spGoldGained + " gold pieces!");
         f.addPlayerGold(spGoldGained);
       }
@@ -77,7 +81,7 @@ public class Scenario
       System.out.println("You discover a treasure trove!\nYou'll have to be strong to get through the traps!");
       if(first.getStrength() >= strengthCheck)
       {
-        int stGoldGained = (int)(Math.random() * 21) + 20;
+        int stGoldGained = (int)(Math.random() * 101) + 100;
         System.out.println("You easily force your way through the traps.\nYou gain " + stGoldGained + " gold pieces!");
         f.addPlayerGold(stGoldGained);
       }
@@ -91,8 +95,12 @@ public class Scenario
   }
   public void battle(Weapon first, Character f)
   {
-    Object[] enemyTypes = {new goblin(), new skeleton(), new slime(), new zombie(), new darkFairy(), new ogre(), new elemental(), new amalgalm() };
-    Enemies enemy = (Enemies)enemyTypes[0]; //(int)(Math.random() * 8)
+    if((int)(Math.random() * 100) + 1 < 40)
+        encounter = (int)(Math.random() * 4) + 4; //stronger enemy
+    else
+        encounter = (int)(Math.random() * 4); //weaker enemy
+    Enemies enemy = (Enemies)enemyTypes[encounter];
+    enemy.reset();
     escape = false;
     int tCounter = 0;
     System.out.println("\nYou encounter a " + enemy.getEnemyName() + ".");
@@ -107,6 +115,7 @@ public class Scenario
       switch(enemy.enemyTurn(first, f, enemy))
       {
           case 1:
+          enemy.setEnemyAttacking(false);
            if(dodge > 10 + first.getSpeed())
             {
                 if(blocking)
@@ -117,7 +126,7 @@ public class Scenario
                     }
                     else
                     {
-                        f.removePlayerHealth((enemy.getEnemyAtt() - first.getStrength() / 2));
+                        f.removePlayerHealth(((enemy.getEnemyAtt() - first.getStrength()) / 2));
                         System.out.println("The " + enemy.getEnemyName() + " strikes you for " + (enemy.getEnemyAtt() - first.getStrength()) + " damage!");
                     }
                 }
@@ -131,23 +140,28 @@ public class Scenario
             {
                 System.out.println("You evade the " + enemy.getEnemyName() + "'s strike!");
             }
+            enemy.setEnemyAttacking(false);
           break;
           case 2:
             enemy.setEnemyBlocking(true);
           break;
           case 3:
+            enemy.setEnemyAttacking(true);
+            System.out.println("The " + enemy.getEnemyName() + " is preparing an attack!");
+          case 4:
             if((int)(Math.random() * 100) + 1 < 30)
             {
                 enemy.setEnemyEscape(true);
                  System.out.println("The " + enemy.getEnemyName() + " got away...");
-             }
+            }
              else
                  System.out.println("The " + enemy.getEnemyName() + " tried to escape but couldn't get away!");
             break;
+            
         }
     }
     if(enemy.getEnemyHealth() <= 0)
-    battleVictory(f);
+    battleVictory(f, enemy);
     else if(f.getPlayerHealth() <= 0)
     playerDeath();
     else
@@ -156,6 +170,7 @@ public class Scenario
   }
   public void playerTurn(Weapon first, Character f, Enemies enemy)
   {
+    int escapeChance = (int)(Math.random() * 100) + 1;
     int doubleStrike = (int)(Math.random() * 100) + 1;
     blocking = false;
     Scanner battle = new Scanner(System.in);
@@ -184,7 +199,7 @@ public class Scenario
                 {
                 enemy.setEnemyHealth(enemy.getEnemyHealth() - (first.getStrength() - enemy.getEnemyAtt()));
                 System.out.println("\nYou strike the " + enemy.getEnemyName() + " with your " + first.getType() + " but the " + enemy.getEnemyName() + " was prepared." + " You deal only " + (first.getStrength() - enemy.getEnemyAtt()) + " damage!");
-                if(doubleStrike > 10 + (first.getSpeed() * 1.5)) //doulbeStrike blocked
+                if(doubleStrike < 10 + (first.getSpeed() * 1.5)) //doulbeStrike blocked
                 {
                     System.out.println("You outmanuever the " + enemy.getEnemyName() + " and deal an additional " + (first.getStrength() - enemy.getEnemyAtt()) + " damage!");
                     enemy.setEnemyHealth(enemy.getEnemyHealth() - (first.getStrength() - enemy.getEnemyAtt()));
@@ -196,7 +211,7 @@ public class Scenario
               {
               enemy.setEnemyHealth(enemy.getEnemyHealth()-first.getStrength()); //basic attack
               System.out.println("\nYou strike the " + enemy.getEnemyName() + " with your " + first.getType() + ".\nYou deal " + first.getStrength() + " damage!"); 
-              if(doubleStrike > 10 + (first.getSpeed() * 1.5)) //doubleStrike
+              if(doubleStrike < 10 + (first.getSpeed() * 1.5)) //doubleStrike
                 {
                     System.out.println("You outmanuever the " + enemy.getEnemyName() + " and deal an additional " + first.getStrength() + " damage!");
                     enemy.setEnemyHealth(enemy.getEnemyHealth() - first.getStrength());
@@ -211,7 +226,7 @@ public class Scenario
           break;
           case "flee": //escape 
           f.trueGaveAnswer();
-          if((int)(Math.random() * 100) + first.getSpeed() >= 50)
+          if((escapeChance + first.getSpeed()>= 50))
           {
           escape = true;
           System.out.println("You successfully escaped.");
@@ -227,10 +242,10 @@ public class Scenario
     }
       
   }  
-  public void battleVictory(Character f)
+  public void battleVictory(Character f, Enemies e)
   {
-    int battleGold = (int)(Math.random() * 31) + 10;
-    System.out.println("\nThe goblin falls!");
+    int battleGold = e.enemyGold();
+    System.out.println("\nThe " + e.getEnemyName() + " falls!");
     System.out.println("You gain " + battleGold + " gold pieces!");
     f.addPlayerGold(battleGold);
   }

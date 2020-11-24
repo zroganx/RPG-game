@@ -2,13 +2,33 @@ public class slime extends EnemyBasicAI implements Enemies
 {    
     private boolean enemyEscape;
     private boolean enemyBlocking;
+    private boolean enemyAttacking;
     private String enemyName;
     private int enemyHealth;
     private int enemyAtt;
     private int enemyTotalHealth;
+
+    public slime()
+    {
+        enemyEscape = false;
+        enemyBlocking = false;
+        enemyName = "slime";
+        enemyHealth = 30;
+        enemyAtt = 10;
+        enemyTotalHealth = enemyHealth;
+    }
+    
+    public int enemyTurn(Weapon first,Character f,Enemies e)
+    {
+       return super.enemyTurn(first, f, e);
+    }
     public int getEnemyTotalHealth()
     {
         return enemyTotalHealth;
+    }
+    public boolean getEnemyAttacking()
+    {
+      return enemyAttacking;
     }
     public String getEnemyName()
     {
@@ -36,10 +56,27 @@ public class slime extends EnemyBasicAI implements Enemies
     }
     public void setEnemyHealth(int s)
     {
-        enemyHealth += s;
+        enemyHealth = s;
     }
     public void setEnemyEscape(boolean s)
     {
         enemyEscape = s;
+    }
+    public void setEnemyAttacking(boolean s)
+    {
+        enemyAttacking = s;
+    }
+    public void reset()
+    {
+         enemyEscape = false;
+        enemyBlocking = false;
+        enemyName = "slime";
+        enemyHealth = 30;
+        enemyAtt = 10;
+        enemyTotalHealth = enemyHealth;
+    }
+    public int enemyGold()
+    {
+        return (int)(Math.random() * 21) + 90;
     }
 }
